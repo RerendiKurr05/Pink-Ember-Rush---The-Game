@@ -13,6 +13,29 @@ namespace Controller
         private Vector2 _frameVelocity;
         private bool _cachedQueryStartInColliders;
 
+        // --- ADDED: Missing Variables for Custom Mechanics ---
+        [Header("Dash Settings")]
+        public float dashSpeed = 20f;
+        public float dashDuration = 0.2f;
+        public float dashCooldown = 1f;
+        private float _dashTimeLeft;
+        private float _dashCooldownTimer;
+        private bool _isDashing;
+
+        [Header("Wall Jump Settings")]
+        public float wallSlideSpeed = 2f;
+        public Vector2 wallJumpForce = new Vector2(10f, 15f);
+        public float wallJumpDuration = 0.25f;
+        private float _wallJumpTimer;
+        private bool _isWallSliding;
+        private int _wallDirX;
+
+        // Collision Checks
+        private bool _colLeft;
+        private bool _colRight;
+        private bool _colDown;
+
+
         #region Interface
 
         public Vector2 FrameInput => _frameInput.Move;
@@ -27,30 +50,30 @@ namespace Controller
         {
             _rb = GetComponent<Rigidbody2D>();
             _col = GetComponent<CapsuleCollider2D>();
-
             _cachedQueryStartInColliders = Physics2D.queriesStartInColliders;
         }
 
-        private void Update()
+        private void Update() 
         {
             _time += Time.deltaTime;
-            GatherInput();
+            
+            // Restored original Tarodev input gathering
+            GatherInput(); 
+
+            // Your custom mechanics
+            CalculateDash();
+            CalculateWallMechanics();
         }
 
+        // ADDED: The missing method that translates Unity inputs into Tarodev logic
         private void GatherInput()
         {
             _frameInput = new FrameInput
             {
-                JumpDown = Input.GetButtonDown("Jump") || Input.GetKeyDown(KeyCode.C),
-                JumpHeld = Input.GetButton("Jump") || Input.GetKey(KeyCode.C),
+                JumpDown = Input.GetButtonDown("Jump"),
+                JumpHeld = Input.GetButton("Jump"),
                 Move = new Vector2(Input.GetAxisRaw("Horizontal"), Input.GetAxisRaw("Vertical"))
             };
-
-            if (_stats.SnapInput)
-            {
-                _frameInput.Move.x = Mathf.Abs(_frameInput.Move.x) < _stats.HorizontalDeadZoneThreshold ? 0 : Mathf.Sign(_frameInput.Move.x);
-                _frameInput.Move.y = Mathf.Abs(_frameInput.Move.y) < _stats.VerticalDeadZoneThreshold ? 0 : Mathf.Sign(_frameInput.Move.y);
-            }
 
             if (_frameInput.JumpDown)
             {
@@ -63,15 +86,19 @@ namespace Controller
         {
             CheckCollisions();
 
-            HandleJump();
-            HandleDirection();
-            HandleGravity();
-            
+            // Suspend normal horizontal/jump logic if the player is currently dashing
+            if (!_isDashing)
+            {
+                HandleJump();
+                HandleDirection();
+                HandleGravity();
+            }
+
             ApplyMovement();
         }
 
         #region Collisions
-        
+
         private float _frameLeftGrounded = float.MinValue;
         private bool _grounded;
 
@@ -82,6 +109,11 @@ namespace Controller
             // Ground and Ceiling
             bool groundHit = Physics2D.CapsuleCast(_col.bounds.center, _col.size, _col.direction, 0, Vector2.down, _stats.GrounderDistance, ~_stats.PlayerLayer);
             bool ceilingHit = Physics2D.CapsuleCast(_col.bounds.center, _col.size, _col.direction, 0, Vector2.up, _stats.GrounderDistance, ~_stats.PlayerLayer);
+
+            // ADDED: Left/Right checks to enable your Wall Slide logic
+            _colLeft = Physics2D.CapsuleCast(_col.bounds.center, _col.size, _col.direction, 0, Vector2.left, _stats.GrounderDistance, ~_stats.PlayerLayer);
+            _colRight = Physics2D.CapsuleCast(_col.bounds.center, _col.size, _col.direction, 0, Vector2.right, _stats.GrounderDistance, ~_stats.PlayerLayer);
+            _colDown = groundHit;
 
             // Hit a Ceiling
             if (ceilingHit) _frameVelocity.y = Mathf.Min(0, _frameVelocity.y);
@@ -105,40 +137,8 @@ namespace Controller
 
             Physics2D.queriesStartInColliders = _cachedQueryStartInColliders;
         }
-        private void CalculateWallMechanics()
-{
-    bool touchingWall = _colLeft || _colRight;
-    _wallDirX = _colRight ? 1 : -1;
-
-    // WALL SLIDE (Wall Drag)
-    // Jika nabrak dinding, turun, dan menekan arah dinding
-    if (touchingWall && !_colDown && _velocity.y < 0) 
-    {
-        _isWallSliding = true;
-        
-        // Membatasi kecepatan jatuh saat nempel di dinding (Clamped fall speed)
-        if (_velocity.y < -wallSlideSpeed) {
-            _velocity.y = -wallSlideSpeed;
-        }
-    } 
-    else 
-    {
-        _isWallSliding = false;
-    }
-
-    if (_wallJumpTimer > 0) _wallJumpTimer -= Time.deltaTime;
-
-    // WALL JUMP
-    if (_isWallSliding && Input.GetButtonDown("Jump")) // Ganti dengan Input bawaan script jika perlu
-    {
-        _wallJumpTimer = wallJumpDuration;
-        _velocity.x = -_wallDirX * wallJumpForce.x; 
-        _velocity.y = wallJumpForce.y;
-    }
-}
 
         #endregion
-
 
         #region Jumping
 
@@ -171,6 +171,37 @@ namespace Controller
             _frameVelocity.y = _stats.JumpPower;
             Jumped?.Invoke();
         }
+        
+        private void CalculateWallMechanics()
+        {
+            bool touchingWall = _colLeft || _colRight;
+            _wallDirX = _colRight ? 1 : -1;
+
+            // WALL SLIDE 
+            if (touchingWall && !_colDown && _frameVelocity.y < 0)
+            {
+                _isWallSliding = true;
+
+                if (_frameVelocity.y < -wallSlideSpeed)
+                {
+                    _frameVelocity.y = -wallSlideSpeed;
+                }
+            }
+            else
+            {
+                _isWallSliding = false;
+            }
+
+            if (_wallJumpTimer > 0) _wallJumpTimer -= Time.deltaTime;
+
+            // WALL JUMP 
+            if (_isWallSliding && _frameInput.JumpDown)
+            {
+                _wallJumpTimer = wallJumpDuration;
+                _frameVelocity.x = -_wallDirX * wallJumpForce.x;
+                _frameVelocity.y = wallJumpForce.y;
+            }
+        }
 
         #endregion
 
@@ -178,6 +209,9 @@ namespace Controller
 
         private void HandleDirection()
         {
+            // Lock out normal horizontal movement while performing a wall jump
+            if (_wallJumpTimer > 0) return;
+
             if (_frameInput.Move.x == 0)
             {
                 var deceleration = _grounded ? _stats.GroundDeceleration : _stats.AirDeceleration;
@@ -188,6 +222,34 @@ namespace Controller
                 _frameVelocity.x = Mathf.MoveTowards(_frameVelocity.x, _frameInput.Move.x * _stats.MaxSpeed, _stats.Acceleration * Time.fixedDeltaTime);
             }
         }
+        
+        private void CalculateDash()
+        {
+            if (_dashCooldownTimer > 0) _dashCooldownTimer -= Time.deltaTime;
+
+            if (Input.GetKeyDown(KeyCode.LeftShift) && _dashCooldownTimer <= 0 && !_isDashing)
+            {
+                _isDashing = true;
+                _dashTimeLeft = dashDuration;
+                _dashCooldownTimer = dashCooldown;
+            }
+
+            if (_isDashing)
+            {
+                _dashTimeLeft -= Time.deltaTime;
+
+                float facingDir = _frameVelocity.x != 0 ? Mathf.Sign(_frameVelocity.x) : transform.localScale.x;
+                if (Input.GetAxisRaw("Horizontal") != 0) facingDir = Mathf.Sign(Input.GetAxisRaw("Horizontal"));
+
+                _frameVelocity.y = 0; // Hover slightly while dashing
+                _frameVelocity.x = dashSpeed * facingDir;
+
+                if (_dashTimeLeft <= 0)
+                {
+                    _isDashing = false;
+                }
+            }
+        }
 
         #endregion
 
@@ -195,6 +257,9 @@ namespace Controller
 
         private void HandleGravity()
         {
+            // Wall slide logic manages its own gravity
+            if (_isWallSliding) return;
+
             if (_grounded && _frameVelocity.y <= 0f)
             {
                 _frameVelocity.y = _stats.GroundingForce;
@@ -233,5 +298,4 @@ namespace Controller
         public event Action Jumped;
         public Vector2 FrameInput { get; }
     }
-    
 }
