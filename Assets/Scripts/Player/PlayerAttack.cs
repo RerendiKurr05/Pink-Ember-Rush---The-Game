@@ -33,9 +33,11 @@ public class PlayerAttack : MonoBehaviour
         }
     }
 
-    void Attack()
+void Attack()
     {
         Collider2D[] hitEnemies = Physics2D.OverlapCircleAll(attackPoint.position, attackRange, enemyLayers);
+
+        bool hasHitSomeone = false;
 
         foreach (Collider2D enemy in hitEnemies)
         {
@@ -44,8 +46,15 @@ public class PlayerAttack : MonoBehaviour
             if (enemyScript != null)
             {
                 enemyScript.TakeDamage(attackDamage);
-                Debug.Log("Terkena hit: " + enemy.name);
+                hasHitSomeone = true;
             }
+        }
+
+        if (hasHitSomeone)
+        {
+            GameJuiceManager.instance.HitStop(0.1f);
+            
+            GameJuiceManager.instance.ShakeCamera(4f, 0.15f);
         }
     }
 
