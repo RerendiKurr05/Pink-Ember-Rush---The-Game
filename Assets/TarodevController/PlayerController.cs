@@ -13,7 +13,6 @@ namespace Controller
         private Vector2 _frameVelocity;
         private bool _cachedQueryStartInColliders;
 
-        // --- ADDED: Missing Variables for Custom Mechanics ---
         [Header("Dash Settings")]
         public float dashSpeed = 20f;
         public float dashDuration = 0.2f;
@@ -51,21 +50,32 @@ namespace Controller
             _rb = GetComponent<Rigidbody2D>();
             _col = GetComponent<CapsuleCollider2D>();
             _cachedQueryStartInColliders = Physics2D.queriesStartInColliders;
+
+            _distanceJoint = GetComponent<DistanceJoint2D>();
+            if (_distanceJoint != null)
+            {
+                _distanceJoint.enabled = false;
+            }
         }
 
-        private void Update() 
+        private void Update()
         {
             _time += Time.deltaTime;
-            
-            // Restored original Tarodev input gathering
-            GatherInput(); 
 
-            // Your custom mechanics
-            CalculateDash();
-            CalculateWallMechanics();
+            // 1. Selalu ambil input dari player setiap frame
+            GatherInput();
+
+            // 2. Cek apakah player menekan tombol Grapple
+            CalculateGrapple();
+
+            // 3. Jalankan mekanik Dash & Wall HANYA jika player tidak sedang berayun (grappling)
+            if (!_isGrappling)
+            {
+                CalculateDash();
+                CalculateWallMechanics();
+            }
         }
 
-        // ADDED: The missing method that translates Unity inputs into Tarodev logic
         private void GatherInput()
         {
             _frameInput = new FrameInput
@@ -86,8 +96,8 @@ namespace Controller
         {
             CheckCollisions();
 
-            // Suspend normal horizontal/jump logic if the player is currently dashing
-            if (!_isDashing)
+            // 4. Suspend (hentikan) fisika berjalan & melompat normal JIKA player sedang Dash ATAU Grapple
+            if (!_isDashing && !_isGrappling)
             {
                 HandleJump();
                 HandleDirection();
@@ -106,19 +116,15 @@ namespace Controller
         {
             Physics2D.queriesStartInColliders = false;
 
-            // Ground and Ceiling
             bool groundHit = Physics2D.CapsuleCast(_col.bounds.center, _col.size, _col.direction, 0, Vector2.down, _stats.GrounderDistance, ~_stats.PlayerLayer);
             bool ceilingHit = Physics2D.CapsuleCast(_col.bounds.center, _col.size, _col.direction, 0, Vector2.up, _stats.GrounderDistance, ~_stats.PlayerLayer);
 
-            // ADDED: Left/Right checks to enable your Wall Slide logic
             _colLeft = Physics2D.CapsuleCast(_col.bounds.center, _col.size, _col.direction, 0, Vector2.left, _stats.GrounderDistance, ~_stats.PlayerLayer);
             _colRight = Physics2D.CapsuleCast(_col.bounds.center, _col.size, _col.direction, 0, Vector2.right, _stats.GrounderDistance, ~_stats.PlayerLayer);
             _colDown = groundHit;
 
-            // Hit a Ceiling
             if (ceilingHit) _frameVelocity.y = Mathf.Min(0, _frameVelocity.y);
 
-            // Landed on the Ground
             if (!_grounded && groundHit)
             {
                 _grounded = true;
@@ -127,7 +133,6 @@ namespace Controller
                 _endedJumpEarly = false;
                 GroundedChanged?.Invoke(true, Mathf.Abs(_frameVelocity.y));
             }
-            // Left the Ground
             else if (_grounded && !groundHit)
             {
                 _grounded = false;
@@ -171,7 +176,7 @@ namespace Controller
             _frameVelocity.y = _stats.JumpPower;
             Jumped?.Invoke();
         }
-        
+
         private void CalculateWallMechanics()
         {
             bool touchingWall = _colLeft || _colRight;
@@ -203,13 +208,51 @@ namespace Controller
             }
         }
 
+        [Header("GRAPPLING HOOK")]
+        public float grappleRange = 8f;
+        public LayerMask grappleLayer;
+        public float swingBoost = 15f; // Memberikan momentum tambahan saat berayun
+        private DistanceJoint2D _distanceJoint;
+        private bool _isGrappling;
+
+        private void CalculateGrapple()
+        {
+            if (Input.GetKeyDown(KeyCode.E) || Input.GetMouseButtonDown(1))
+            {
+                Collider2D nearestPoint = Physics2D.OverlapCircle(transform.position, grappleRange, grappleLayer);
+
+                if (nearestPoint != null)
+                {
+                    _isGrappling = true;
+                    _distanceJoint.connectedAnchor = nearestPoint.transform.position;
+                    _distanceJoint.enabled = true;
+                }
+            }
+            // Melepas Grapple
+            else if (Input.GetKeyUp(KeyCode.E) || Input.GetMouseButtonUp(1))
+            {
+                if (_isGrappling)
+                {
+                    _isGrappling = false;
+                    _distanceJoint.enabled = false;
+
+                    _frameVelocity = GetComponent<Rigidbody2D>().velocity;
+                }
+            }
+
+            if (_isGrappling)
+            {
+                float inputX = Input.GetAxisRaw("Horizontal");
+                GetComponent<Rigidbody2D>().AddForce(Vector2.right * inputX * swingBoost);
+            }
+        }
+
         #endregion
 
         #region Horizontal
 
         private void HandleDirection()
         {
-            // Lock out normal horizontal movement while performing a wall jump
             if (_wallJumpTimer > 0) return;
 
             if (_frameInput.Move.x == 0)
@@ -222,7 +265,7 @@ namespace Controller
                 _frameVelocity.x = Mathf.MoveTowards(_frameVelocity.x, _frameInput.Move.x * _stats.MaxSpeed, _stats.Acceleration * Time.fixedDeltaTime);
             }
         }
-        
+
         private void CalculateDash()
         {
             if (_dashCooldownTimer > 0) _dashCooldownTimer -= Time.deltaTime;
@@ -257,7 +300,6 @@ namespace Controller
 
         private void HandleGravity()
         {
-            // Wall slide logic manages its own gravity
             if (_isWallSliding) return;
 
             if (_grounded && _frameVelocity.y <= 0f)
