@@ -215,6 +215,7 @@ Developer 1: Muhammad Rendi Kurniawan
 Developer 2: Martarina Rachmi Nafilah
 Developer 3: Nabil Zivkolin Danendra
 Mahasiswa Manajemen Informatika (MIF) Angkatan 2024
+Intern Let's Play Indonesia 2026
 
 contact: mrendikurniawaninbox@gmail.com
 ```
