@@ -1,5 +1,6 @@
 # Pink Ember Rush The-Game
-2D Pixel-Art Platformer — Arcade Survival / High-Rush
+
+Genre: 2D Pixel-Art Platformer, Arcade Survival / High-Rush
 ---
 
 ## Deskripsi
