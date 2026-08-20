@@ -275,6 +275,13 @@ namespace Controller
                 _isDashing = true;
                 _dashTimeLeft = dashDuration;
                 _dashCooldownTimer = dashCooldown;
+
+                Collider2D nearEnemy = Physics2D.OverlapCircle(transform.position, 2f, LayerMask.GetMask("Enemy"));
+                if (nearEnemy != null)
+                {
+                    GameJuiceManager.instance.TriggerSlowMotion(0.2f, 0.5f);
+                    GameJuiceManager.instance.ShakeCamera(2f, 0.2f);
+                }
             }
 
             if (_isDashing)

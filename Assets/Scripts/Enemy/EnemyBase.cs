@@ -6,6 +6,7 @@ public class EnemyBase : MonoBehaviour
     public int maxHealth = 3;
     protected int currentHealth;
     public float moveSpeed = 3f;
+    public bool isAttacking = false;
 
     [Header("Referensi")]
     protected Transform player;
@@ -14,6 +15,8 @@ public class EnemyBase : MonoBehaviour
 
     [Header("Efek Visual")]
     public GameObject heartPrefab;
+
+    
 
     protected virtual void Start()
     {
@@ -35,7 +38,6 @@ public class EnemyBase : MonoBehaviour
             Move();
         }
     }
-
    
     protected virtual void Move() { }
 
