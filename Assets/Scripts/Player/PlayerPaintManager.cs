@@ -15,6 +15,9 @@ public class PlayerPaintManager : MonoBehaviour
     public float attackDuration = 10f;
     private float attackTimer;
 
+    public Animator playerAnimator;
+    public Animator bucketAnimator;
+
     private SpriteRenderer spriteRenderer;
 
     void Start()
@@ -30,7 +33,7 @@ public class PlayerPaintManager : MonoBehaviour
         if (isAttackModeActive)
         {
             attackTimer -= Time.deltaTime;
-            
+
             spriteRenderer.color = Color.Lerp(Color.white, Color.magenta, Mathf.PingPong(Time.time * 5f, 1f));
 
             if (attackTimer <= 0)
@@ -44,8 +47,12 @@ public class PlayerPaintManager : MonoBehaviour
         if (currentPaint < maxPaint)
         {
             currentPaint += amount;
-            if (currentPaint > maxPaint) currentPaint = maxPaint;
             UpdateUI();
+
+            if (currentPaint >= maxPaint)
+            {
+                bucketAnimator.SetBool("isFull", true);
+            }
         }
     }
     public void ConsumePaint()
@@ -58,14 +65,19 @@ public class PlayerPaintManager : MonoBehaviour
     {
         isAttackModeActive = true;
         attackTimer = attackDuration;
-        Debug.Log("Powerup Diambil! Mode Serang Aktif!");
+
+        playerAnimator.SetBool("isArmed", true);
+
+        GameJuiceManager.instance.SetPowerupState(true);
+
+        bucketAnimator.SetBool("isFull", false);
     }
 
     private void DeactivateAttackMode()
     {
         isAttackModeActive = false;
-        spriteRenderer.color = Color.white;
-        Debug.Log("Waktu Powerup Habis.");
+        playerAnimator.SetBool("isArmed", false);
+        GameJuiceManager.instance.SetPowerupState(false);
     }
 
     private void UpdateUI()
@@ -74,5 +86,9 @@ public class PlayerPaintManager : MonoBehaviour
         {
             bucketFillImage.fillAmount = currentPaint / maxPaint;
         }
+
+
+
     }
+
 }

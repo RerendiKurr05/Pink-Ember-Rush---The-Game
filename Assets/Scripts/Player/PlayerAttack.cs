@@ -27,34 +27,49 @@ public class PlayerAttack : MonoBehaviour
                 if (Input.GetButtonDown("Fire1") || Input.GetKeyDown(KeyCode.J))
                 {
                     Attack();
-                    nextAttackTime = Time.time + 1f / attackRate; 
+                    nextAttackTime = Time.time + 1f / attackRate;
                 }
             }
         }
     }
 
-void Attack()
+    void Attack()
     {
-        Collider2D[] hitEnemies = Physics2D.OverlapCircleAll(attackPoint.position, attackRange, enemyLayers);
+        // Memainkan animasi serangan sabit/senjata
+        paintManager.playerAnimator.SetTrigger("Attack");
 
+        Collider2D[] hitEnemies = Physics2D.OverlapCircleAll(attackPoint.position, attackRange, enemyLayers);
         bool hasHitSomeone = false;
+        bool isCounterHit = false;
 
         foreach (Collider2D enemy in hitEnemies)
         {
             EnemyBase enemyScript = enemy.GetComponent<EnemyBase>();
-            
             if (enemyScript != null)
             {
                 enemyScript.TakeDamage(attackDamage);
                 hasHitSomeone = true;
+
+                if (enemyScript.isAttacking)
+                {
+                    isCounterHit = true;
+                }
             }
         }
 
         if (hasHitSomeone)
         {
-            GameJuiceManager.instance.HitStop(0.1f);
-            
-            GameJuiceManager.instance.ShakeCamera(4f, 0.15f);
+            if (isCounterHit)
+            {
+                GameJuiceManager.instance.TriggerSlowMotion(0.1f, 1f); 
+                Debug.Log("COUNTER ATTACK!");
+            }
+            else
+            {
+                // Hit Stop normal
+                GameJuiceManager.instance.HitStop(0.1f);
+                GameJuiceManager.instance.ShakeCamera(4f, 0.15f);
+            }
         }
     }
 

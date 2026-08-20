@@ -13,11 +13,11 @@ public class GameJuiceManager : MonoBehaviour
     [Header("Shake Settings")]
     public float defaultShakeIntensity = 3f;
     public float defaultShakeFrequency = 2f;
-    
+
     private float shakeTimer;
     private float shakeTimerTotal;
     private float startingIntensity;
-    
+
     private bool isHitStopping = false;
 
     void Awake()
@@ -54,6 +54,23 @@ public class GameJuiceManager : MonoBehaviour
         }
     }
 
+    public void TriggerSlowMotion(float slowScale, float duration)
+    {
+        StartCoroutine(SlowMotionRoutine(slowScale, duration));
+    }
+
+    private System.Collections.IEnumerator SlowMotionRoutine(float slowScale, float duration)
+    {
+        // Pelambatan waktu
+        Time.timeScale = slowScale;
+        Time.fixedDeltaTime = 0.02f * Time.timeScale;
+
+        yield return new WaitForSecondsRealtime(duration);
+
+        // Kembalikan ke normal
+        Time.timeScale = 1f;
+        Time.fixedDeltaTime = 0.02f;
+    }
     public void ShakeCamera(float intensity, float time)
     {
         if (cinemachineNoise == null) return;
@@ -75,12 +92,34 @@ public class GameJuiceManager : MonoBehaviour
     private IEnumerator HitStopRoutine(float duration)
     {
         isHitStopping = true;
-        
-        Time.timeScale = 0.05f; 
-        
+
+        Time.timeScale = 0.05f;
+
         yield return new WaitForSecondsRealtime(duration);
-        
+
         Time.timeScale = 1f;
         isHitStopping = false;
     }
+
+    [Header("Powerup Visuals")]
+    public AudioSource bgmNormal;
+    public AudioSource bgmTense;
+    public ParticleSystem speedLines;
+
+    public void SetPowerupState(bool isActive)
+    {
+        if (isActive)
+        {
+            bgmNormal.Pause();
+            bgmTense.Play();
+            speedLines.Play();
+        }
+        else
+        {
+            bgmTense.Stop();
+            bgmNormal.Play();
+            speedLines.Stop();
+        }
+    }
+
 }
