@@ -106,19 +106,45 @@ public class GameJuiceManager : MonoBehaviour
     public AudioSource bgmTense;
     public ParticleSystem speedLines;
 
+    // public void SetPowerupState(bool isActive)
+    // {
+    //     if (isActive)
+    //     {
+    //         bgmNormal.Pause();
+    //         bgmTense.Play();
+    //         speedLines.Play();
+    //     }
+    //     else
+    //     {
+    //         bgmTense.Stop();
+    //         bgmNormal.Play();
+    //         speedLines.Stop();
+    //     }
+    // }
+
     public void SetPowerupState(bool isActive)
     {
         if (isActive)
         {
-            bgmNormal.Pause();
-            bgmTense.Play();
-            speedLines.Play();
+            if (bgmNormal != null)
+                bgmNormal.Pause();
+
+            if (bgmTense != null)
+                bgmTense.Play();
+
+            if (speedLines != null)
+                speedLines.Play();
         }
         else
         {
-            bgmTense.Stop();
-            bgmNormal.Play();
-            speedLines.Stop();
+            if (bgmTense != null)
+                bgmTense.Stop();
+
+            if (bgmNormal != null)
+                bgmNormal.Play();
+
+            if (speedLines != null)
+                speedLines.Stop();
         }
     }
 
