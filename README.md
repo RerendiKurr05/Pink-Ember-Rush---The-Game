@@ -9,7 +9,7 @@ Ini adalah dev repo untuk **Pink Ember Rush**, sebuah game platformer survival r
 
 Isi Ember sampai penuh dan ambil **Power-Up** untuk meluncurkan serangan balik. Semakin lama bertahan, semakin banyak musuh muncul — skor akhir ditentukan oleh waktu bertahan dan efisiensi, dan membiarkan kalian untuk mengelola risiko vs imbalan, dibungkus dalam nuansa kota Jember yang playful dan romantis.
 
-Latar cerita: Kota Jember dikenal sebagai **"Kota Cinta"**. Warna-warna cinta di kota mulai pudar karena gangguan makhluk-makhluk kelabu bernama **Grim Sprites**. Karakter utama, seorang pelukis jalanan kecil bernama **Emba**, harus berlari mengumpulkan Cat Pink yang tersisa untuk mengisi Ember Cinta dan mengembalikan warna kota.
+Latar cerita: Kota Jember dikenal sebagai **"Kota Cinta"**. Warna-warna cinta di kota mulai pudar karena gangguan makhluk-makhluk bernama **Grim Sprites**. Karakter utama, seorang pelukis jalanan kecil bernama **Gumi**, harus berlari mengumpulkan Cat Pink yang tersisa untuk mengisi Ember Cinta dan mengembalikan warna kota.
 
 | Aspek | Ketentuan |
 |---|---|

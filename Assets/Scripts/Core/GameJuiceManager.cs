@@ -10,19 +10,19 @@ public class GameJuiceManager : MonoBehaviour
     public CinemachineVirtualCamera virtualCamera;
     private CinemachineBasicMultiChannelPerlin cinemachineNoise;
 
-    [Header("Shake Settings")]
-    public float defaultShakeIntensity = 3f;
-    public float defaultShakeFrequency = 2f;
+    [Header("Audio Filter Reference")]
+    public AudioLowPassFilter audioLowPassFilter;
+    public float normalCutoff = 22000f;
+    public float muffleCutoff = 800f;
 
     private float shakeTimer;
     private float shakeTimerTotal;
     private float startingIntensity;
-
+    
     private bool isHitStopping = false;
 
     void Awake()
     {
-        // Setup Singleton
         if (instance == null) instance = this;
         else Destroy(gameObject);
     }
@@ -32,6 +32,12 @@ public class GameJuiceManager : MonoBehaviour
         if (virtualCamera != null)
         {
             cinemachineNoise = virtualCamera.GetCinemachineComponent<CinemachineBasicMultiChannelPerlin>();
+        }
+
+        if (audioLowPassFilter != null)
+        {
+            audioLowPassFilter.cutoffFrequency = normalCutoff;
+            audioLowPassFilter.enabled = false;
         }
     }
 
@@ -48,10 +54,36 @@ public class GameJuiceManager : MonoBehaviour
             }
             else
             {
-
                 cinemachineNoise.m_AmplitudeGain = Mathf.Lerp(startingIntensity, 0f, 1 - (shakeTimer / shakeTimerTotal));
             }
         }
+    }
+
+    public void ShakeCamera(float intensity, float time)
+    {
+        if (cinemachineNoise == null) return;
+        cinemachineNoise.m_AmplitudeGain = intensity;
+        cinemachineNoise.m_FrequencyGain = defaultFrequencyForShake(intensity);
+        startingIntensity = intensity;
+        shakeTimerTotal = time;
+        shakeTimer = time;
+    }
+    
+    private float defaultFrequencyForShake(float intensity) => 2f;
+
+    public void HitStop(float duration)
+    {
+        if (isHitStopping) return;
+        StartCoroutine(HitStopRoutine(duration));
+    }
+
+    private IEnumerator HitStopRoutine(float duration)
+    {
+        isHitStopping = true;
+        Time.timeScale = 0.05f;
+        yield return new WaitForSecondsRealtime(duration);
+        Time.timeScale = 1f;
+        isHitStopping = false;
     }
 
     public void TriggerSlowMotion(float slowScale, float duration)
@@ -59,48 +91,28 @@ public class GameJuiceManager : MonoBehaviour
         StartCoroutine(SlowMotionRoutine(slowScale, duration));
     }
 
-    private System.Collections.IEnumerator SlowMotionRoutine(float slowScale, float duration)
+    private IEnumerator SlowMotionRoutine(float slowScale, float duration)
     {
-        // Pelambatan waktu
         Time.timeScale = slowScale;
         Time.fixedDeltaTime = 0.02f * Time.timeScale;
 
+        if (audioLowPassFilter != null)
+        {
+            audioLowPassFilter.enabled = true;
+            audioLowPassFilter.cutoffFrequency = muffleCutoff;
+        }
+
         yield return new WaitForSecondsRealtime(duration);
 
-        // Kembalikan ke normal
         Time.timeScale = 1f;
         Time.fixedDeltaTime = 0.02f;
+
+        if (audioLowPassFilter != null)
+        {
+            audioLowPassFilter.cutoffFrequency = normalCutoff;
+            audioLowPassFilter.enabled = false;
+        }
     }
-    public void ShakeCamera(float intensity, float time)
-    {
-        if (cinemachineNoise == null) return;
-
-        cinemachineNoise.m_AmplitudeGain = intensity;
-        cinemachineNoise.m_FrequencyGain = defaultShakeFrequency;
-
-        startingIntensity = intensity;
-        shakeTimerTotal = time;
-        shakeTimer = time;
-    }
-    public void HitStop(float duration)
-    {
-        if (isHitStopping) return;
-
-        StartCoroutine(HitStopRoutine(duration));
-    }
-
-    private IEnumerator HitStopRoutine(float duration)
-    {
-        isHitStopping = true;
-
-        Time.timeScale = 0.05f;
-
-        yield return new WaitForSecondsRealtime(duration);
-
-        Time.timeScale = 1f;
-        isHitStopping = false;
-    }
-
     [Header("Powerup Visuals")]
     public AudioSource bgmNormal;
     public AudioSource bgmTense;
@@ -126,26 +138,15 @@ public class GameJuiceManager : MonoBehaviour
     {
         if (isActive)
         {
-            if (bgmNormal != null)
-                bgmNormal.Pause();
-
-            if (bgmTense != null)
-                bgmTense.Play();
-
-            if (speedLines != null)
-                speedLines.Play();
+            if (bgmNormal != null) bgmNormal.Pause();
+            if (bgmTense != null) bgmTense.Play();
+            if (speedLines != null) speedLines.Play();
         }
         else
         {
-            if (bgmTense != null)
-                bgmTense.Stop();
-
-            if (bgmNormal != null)
-                bgmNormal.Play();
-
-            if (speedLines != null)
-                speedLines.Stop();
+            if (bgmTense != null) bgmTense.Stop();
+            if (bgmNormal != null) bgmNormal.Play();
+            if (speedLines != null) speedLines.Stop();
         }
-    }
-
+   }
 }
