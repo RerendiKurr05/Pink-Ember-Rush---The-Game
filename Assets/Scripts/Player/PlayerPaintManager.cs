@@ -20,11 +20,22 @@ public class PlayerPaintManager : MonoBehaviour
 
     private SpriteRenderer spriteRenderer;
 
+    // void Start()
+    // {
+    //     currentPaint = 0f;
+    //     UpdateUI();
+    //     spriteRenderer = GetComponent<SpriteRenderer>();
+    // }
     void Start()
     {
         currentPaint = 0f;
         UpdateUI();
         spriteRenderer = GetComponent<SpriteRenderer>();
+
+        if (isAttackModeActive)
+        {
+            attackTimer = attackDuration;
+        }
     }
 
     void Update()
@@ -44,14 +55,21 @@ public class PlayerPaintManager : MonoBehaviour
     }
     public void AddPaint(float amount)
     {
+        if (isAttackModeActive) return;
+
         if (currentPaint < maxPaint)
         {
             currentPaint += amount;
+            currentPaint = Mathf.Min(currentPaint, maxPaint);
+
             UpdateUI();
 
             if (currentPaint >= maxPaint)
             {
-                bucketAnimator.SetBool("isFull", true);
+                if (bucketAnimator != null)
+                    bucketAnimator.SetBool("isFull", true);
+
+                ActivateAttackMode();
             }
         }
     }
@@ -66,11 +84,16 @@ public class PlayerPaintManager : MonoBehaviour
         isAttackModeActive = true;
         attackTimer = attackDuration;
 
-        playerAnimator.SetBool("isArmed", true);
+        ConsumePaint();
 
-        GameJuiceManager.instance.SetPowerupState(true);
+        if (playerAnimator != null)
+            playerAnimator.SetBool("isArmed", true);
 
-        bucketAnimator.SetBool("isFull", false);
+        if (GameJuiceManager.instance != null)
+            GameJuiceManager.instance.SetPowerupState(true);
+
+        if (bucketAnimator != null)
+            bucketAnimator.SetBool("isFull", false);
     }
 
     private void DeactivateAttackMode()

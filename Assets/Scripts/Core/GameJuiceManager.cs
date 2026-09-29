@@ -118,6 +118,22 @@ public class GameJuiceManager : MonoBehaviour
     public AudioSource bgmTense;
     public ParticleSystem speedLines;
 
+    // public void SetPowerupState(bool isActive)
+    // {
+    //     if (isActive)
+    //     {
+    //         bgmNormal.Pause();
+    //         bgmTense.Play();
+    //         speedLines.Play();
+    //     }
+    //     else
+    //     {
+    //         bgmTense.Stop();
+    //         bgmNormal.Play();
+    //         speedLines.Stop();
+    //     }
+    // }
+
     public void SetPowerupState(bool isActive)
     {
         if (isActive)
