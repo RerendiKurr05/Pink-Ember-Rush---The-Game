@@ -10,17 +10,41 @@ public class PauseManager : MonoBehaviour
     public GameObject settingsPanel;
     public GameObject quitConfirmPanel;
 
+    [Header("Game Manager")]
+    public GameManager gameManager;
+
     [Header("Audio Settings")]
     public AudioMixer audioMixer;
 
     private bool isPaused = false;
 
+    void Start()
+    {
+        if (pauseCanvas != null)
+            pauseCanvas.SetActive(false);
+
+        if (settingsPanel != null)
+            settingsPanel.SetActive(false);
+
+        if (quitConfirmPanel != null)
+            quitConfirmPanel.SetActive(false);
+
+        if (pauseMainPanel != null)
+            pauseMainPanel.SetActive(true);
+    }
+
     void Update()
     {
+        // Jangan bisa pause kalau game sudah over
+        if (gameManager != null && gameManager.isGameOver)
+            return;
+
         if (Input.GetKeyDown(KeyCode.Escape))
         {
-            if (isPaused) ResumeGame();
-            else PauseGame();
+            if (isPaused)
+                ResumeGame();
+            else
+                PauseGame();
         }
     }
 
@@ -28,7 +52,10 @@ public class PauseManager : MonoBehaviour
     {
         isPaused = true;
         Time.timeScale = 0f;
-        pauseCanvas.SetActive(true);
+
+        if (pauseCanvas != null)
+            pauseCanvas.SetActive(true);
+
         BackToPauseMain();
     }
 
@@ -36,25 +63,45 @@ public class PauseManager : MonoBehaviour
     {
         isPaused = false;
         Time.timeScale = 1f;
-        pauseCanvas.SetActive(false);
+
+        if (pauseCanvas != null)
+            pauseCanvas.SetActive(false);
     }
+
     public void OpenSettings()
     {
-        pauseMainPanel.SetActive(false);
-        settingsPanel.SetActive(true);
+        if (pauseMainPanel != null)
+            pauseMainPanel.SetActive(false);
+
+        if (settingsPanel != null)
+            settingsPanel.SetActive(true);
     }
 
     public void OpenQuitConfirm()
     {
-        pauseMainPanel.SetActive(false);
-        quitConfirmPanel.SetActive(true);
+        if (pauseMainPanel != null)
+            pauseMainPanel.SetActive(false);
+
+        if (quitConfirmPanel != null)
+            quitConfirmPanel.SetActive(true);
     }
 
     public void BackToPauseMain()
     {
-        settingsPanel.SetActive(false);
-        quitConfirmPanel.SetActive(false);
-        pauseMainPanel.SetActive(true);
+        if (settingsPanel != null)
+            settingsPanel.SetActive(false);
+
+        if (quitConfirmPanel != null)
+            quitConfirmPanel.SetActive(false);
+
+        if (pauseMainPanel != null)
+            pauseMainPanel.SetActive(true);
+    }
+
+    public void RestartGame()
+    {
+        Time.timeScale = 1f;
+        SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
     }
 
     public void QuitToMainMenuYes()
@@ -62,13 +109,22 @@ public class PauseManager : MonoBehaviour
         Time.timeScale = 1f;
         SceneManager.LoadScene("MainMenu");
     }
+
+    public void GoToMainMenu()
+    {
+        Time.timeScale = 1f;
+        SceneManager.LoadScene("MainMenu");
+    }
+
     public void SetVolumeBGM(float volume)
     {
-        audioMixer.SetFloat("BGMVolume", Mathf.Log10(volume) * 20);
+        if (audioMixer != null)
+            audioMixer.SetFloat("BGMVolume", Mathf.Log10(Mathf.Max(volume, 0.0001f)) * 20);
     }
 
     public void SetVolumeSFX(float volume)
     {
-        audioMixer.SetFloat("SFXVolume", Mathf.Log10(volume) * 20);
+        if (audioMixer != null)
+            audioMixer.SetFloat("SFXVolume", Mathf.Log10(Mathf.Max(volume, 0.0001f)) * 20);
     }
 }

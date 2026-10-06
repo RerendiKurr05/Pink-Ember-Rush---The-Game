@@ -4,26 +4,23 @@ public class Powerup : MonoBehaviour
 {
     private void OnTriggerEnter2D(Collider2D collision)
     {
-        if (collision.CompareTag("Player"))
+        if (!collision.CompareTag("Player"))
+            return;
+
+        PlayerPaintManager paintManager = collision.GetComponent<PlayerPaintManager>();
+
+        if (paintManager == null)
+            return;
+
+        if (paintManager.isAttackModeActive)
+            return;
+
+        if (paintManager.currentPaint >= paintManager.maxPaint)
         {
-            PlayerPaintManager paintManager = collision.GetComponent<PlayerPaintManager>();
-            
-            if (paintManager != null)
-            {
+            paintManager.ConsumePaint();
+            paintManager.ActivateAttackMode();
 
-                if (paintManager.currentPaint >= paintManager.maxPaint)
-                {
-
-                    paintManager.ConsumePaint();
-                    paintManager.ActivateAttackMode();
-                    
-                    Destroy(gameObject);
-                }
-                else
-                {
-                    Debug.Log("Cat belum penuh! Kumpulkan cat pink lagi!");
-                }
-            }
+            gameObject.SetActive(false);
         }
     }
 }

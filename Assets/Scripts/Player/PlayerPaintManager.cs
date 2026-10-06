@@ -10,6 +10,9 @@ public class PlayerPaintManager : MonoBehaviour
     [Header("UI References")]
     public Image bucketFillImage;
 
+    [Header("Powerup Reference")]
+    public GameObject powerupObject;
+
     [Header("Attack Mode Settings")]
     public bool isAttackModeActive = false;
     public float attackDuration = 10f;
@@ -60,16 +63,18 @@ public class PlayerPaintManager : MonoBehaviour
         if (currentPaint < maxPaint)
         {
             currentPaint += amount;
-            currentPaint = Mathf.Min(currentPaint, maxPaint);
+            currentPaint = Mathf.Clamp(currentPaint, 0f, maxPaint);
 
             UpdateUI();
 
             if (currentPaint >= maxPaint)
             {
-                if (bucketAnimator != null)
-                    bucketAnimator.SetBool("isFull", true);
+                bucketAnimator.SetBool("isFull", true);
 
-                ActivateAttackMode();
+                if (powerupObject != null)
+                {
+                    powerupObject.SetActive(true);
+                }
             }
         }
     }
@@ -100,6 +105,12 @@ public class PlayerPaintManager : MonoBehaviour
     {
         isAttackModeActive = false;
         playerAnimator.SetBool("isArmed", false);
+
+        if (powerupObject != null)
+        {
+            powerupObject.SetActive(false);
+        }
+        
         GameJuiceManager.instance.SetPowerupState(false);
     }
 
