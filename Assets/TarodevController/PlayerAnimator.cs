@@ -68,7 +68,11 @@ namespace Controller
 
         private void HandleSpriteFlip()
         {
-            if (_player.FrameInput.x != 0) _sprite.flipX = _player.FrameInput.x < 0;
+            if (_player.FrameInput.x != 0) 
+            {
+                _sprite.flipX = _player.FrameInput.x < 0;
+                Debug.Log("HandleSpriteFlip jalan! flipX sekarang: " + _sprite.flipX + " | Sprite object: " + _sprite.gameObject.name);
+            }
         }
 
         private void HandleIdleSpeed()

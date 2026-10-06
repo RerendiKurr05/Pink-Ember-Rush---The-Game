@@ -75,8 +75,16 @@ public class GameManager : MonoBehaviour
 
     public void RestartGame()
     {
+        Debug.Log("RETRY DIKLIK!");
+    
         Time.timeScale = 1f;
         
         SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
+    }
+
+    public void GoToMainMenu()
+    {
+        Time.timeScale = 1f;
+        SceneManager.LoadScene("MainMenu");
     }
 }

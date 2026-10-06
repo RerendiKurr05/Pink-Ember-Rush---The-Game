@@ -6,6 +6,7 @@ public class PlayerAttack : MonoBehaviour
     private PlayerPaintManager paintManager;
     public Transform attackPoint;
     public LayerMask enemyLayers;
+    public GameObject projectilePrefab;
 
     [Header("Statistik Serangan")]
     public float attackRange = 0.8f;
@@ -13,9 +14,12 @@ public class PlayerAttack : MonoBehaviour
     public float attackRate = 2f;
     private float nextAttackTime = 0f;
 
+    private Camera mainCamera;
+
     void Start()
     {
         paintManager = GetComponent<PlayerPaintManager>();
+        mainCamera = Camera.main;
     }
 
     void Update()
@@ -35,42 +39,47 @@ public class PlayerAttack : MonoBehaviour
 
     void Attack()
     {
-        // Memainkan animasi serangan sabit/senjata
         paintManager.playerAnimator.SetTrigger("Attack");
 
-        Collider2D[] hitEnemies = Physics2D.OverlapCircleAll(attackPoint.position, attackRange, enemyLayers);
-        bool hasHitSomeone = false;
-        bool isCounterHit = false;
+        if (projectilePrefab == null)
+            return;
 
-        foreach (Collider2D enemy in hitEnemies)
+        GameObject projectile = Instantiate(
+            projectilePrefab,
+            attackPoint.position,
+            Quaternion.identity
+        );
+
+        Vector2 direction = GetMouseDirection();
+
+        PaintProjectile projectileScript = projectile.GetComponent<PaintProjectile>();
+
+        if (projectileScript != null)
         {
-            EnemyBase enemyScript = enemy.GetComponent<EnemyBase>();
-            if (enemyScript != null)
-            {
-                enemyScript.TakeDamage(attackDamage);
-                hasHitSomeone = true;
-
-                if (enemyScript.isAttacking)
-                {
-                    isCounterHit = true;
-                }
-            }
+            projectileScript.SetDirection(direction);
         }
 
-        if (hasHitSomeone)
+        // Flip visual proyektil kalau arah dominan ke kiri
+        if (direction.x < 0)
         {
-            if (isCounterHit)
-            {
-                GameJuiceManager.instance.TriggerSlowMotion(0.1f, 1f); 
-                Debug.Log("COUNTER ATTACK!");
-            }
-            else
-            {
-                // Hit Stop normal
-                GameJuiceManager.instance.HitStop(0.1f);
-                GameJuiceManager.instance.ShakeCamera(4f, 0.15f);
-            }
+            projectile.transform.localScale = new Vector3(
+                -Mathf.Abs(projectile.transform.localScale.x),
+                projectile.transform.localScale.y,
+                projectile.transform.localScale.z
+            );
         }
+    }
+
+    Vector2 GetMouseDirection()
+    {
+        Vector3 mouseScreenPos = Input.mousePosition;
+        mouseScreenPos.z = Mathf.Abs(mainCamera.transform.position.z - attackPoint.position.z);
+
+        Vector3 mouseWorldPos = mainCamera.ScreenToWorldPoint(mouseScreenPos);
+        mouseWorldPos.z = attackPoint.position.z;
+
+        Vector2 direction = (mouseWorldPos - attackPoint.position).normalized;
+        return direction;
     }
 
     void OnDrawGizmosSelected()
