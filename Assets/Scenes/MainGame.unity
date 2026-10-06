@@ -1639,8 +1639,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 66efe9c2f4c8c6c408d956a007a8fd9a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  pausePanel: {fileID: 302256957}
+  pauseCanvas: {fileID: 600057990}
+  pauseMainPanel: {fileID: 302256957}
+  settingsPanel: {fileID: 0}
+  quitConfirmPanel: {fileID: 0}
   gameManager: {fileID: 80562967}
+  audioMixer: {fileID: 0}
 --- !u!114 &600057995
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -3428,7 +3432,7 @@ DistanceJoint2D:
   m_Anchor: {x: 0, y: 0}
   m_ConnectedAnchor: {x: 0, y: 0}
   m_AutoConfigureDistance: 1
-  m_Distance: 0.47038582
+  m_Distance: 0.2642431
   m_MaxDistanceOnly: 0
 --- !u!70 &1506029409
 CapsuleCollider2D:
@@ -3462,8 +3466,8 @@ CapsuleCollider2D:
   m_IsTrigger: 0
   m_UsedByEffector: 0
   m_UsedByComposite: 0
-  m_Offset: {x: 0, y: -0.18}
-  m_Size: {x: 1, y: 1.71}
+  m_Offset: {x: 0, y: 0.8}
+  m_Size: {x: 1, y: 1.5}
   m_Direction: 0
 --- !u!50 &1506029410
 Rigidbody2D:
@@ -3533,7 +3537,7 @@ SpriteRenderer:
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 0
-  m_Sprite: {fileID: -739587861, guid: 509a3dba5b35ed34eb985e009bc31de0, type: 3}
+  m_Sprite: {fileID: -359315644788459208, guid: 4901b4298a3c0a14caae8ccbdec8b299, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_FlipX: 0
   m_FlipY: 0
@@ -3553,7 +3557,7 @@ Transform:
   m_GameObject: {fileID: 1506029402}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0.1971, y: 0.4271, z: 0}
+  m_LocalPosition: {x: 0.1971, y: -0.176, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
@@ -5362,8 +5366,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   virtualCamera: {fileID: 0}
-  defaultShakeIntensity: 3
-  defaultShakeFrequency: 2
+  audioLowPassFilter: {fileID: 0}
+  normalCutoff: 22000
+  muffleCutoff: 800
   bgmNormal: {fileID: 0}
   bgmTense: {fileID: 0}
   speedLines: {fileID: 0}
