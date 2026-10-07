@@ -18,6 +18,12 @@ public class PlayerPaintManager : MonoBehaviour
     public float attackDuration = 10f;
     private float attackTimer;
 
+    [Header("Power Up Visual")]
+    public Animator playerAnimatorComponent; // drag komponen Animator Player ke sini
+    public RuntimeAnimatorController normalController;
+    public RuntimeAnimatorController powerUpController;
+    private bool wasAttackModeActive = false;
+
     public Animator playerAnimator;
     public Animator bucketAnimator;
 
@@ -55,7 +61,22 @@ public class PlayerPaintManager : MonoBehaviour
                 DeactivateAttackMode();
             }
         }
+        
+        HandlePowerUpVisual();
     }
+
+    void HandlePowerUpVisual()
+    {
+        if (isAttackModeActive != wasAttackModeActive)
+        {
+            if (playerAnimatorComponent != null)
+            {
+                playerAnimatorComponent.runtimeAnimatorController = isAttackModeActive ? powerUpController : normalController;
+            }
+            wasAttackModeActive = isAttackModeActive;
+        }
+    }
+
     public void AddPaint(float amount)
     {
         if (isAttackModeActive) return;
