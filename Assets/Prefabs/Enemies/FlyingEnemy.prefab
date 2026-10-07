@@ -148,7 +148,7 @@ MonoBehaviour:
   moveSpeed: 3
   isAttacking: 0
   heartPrefab: {fileID: 0}
-  heartBurstEffectPrefab: {fileID: 4841114765429235938, guid: 486c6046edbdef047a241b7ef3ca44db, type: 3}
+  heartBurstEffectPrefab: {fileID: 4093816738589857345, guid: f8d527b05376c0d408e19dab03b70a1d, type: 3}
   knockbackResistance: 1
   obstacleLayer:
     serializedVersion: 2
