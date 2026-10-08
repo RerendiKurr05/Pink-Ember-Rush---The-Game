@@ -14,16 +14,25 @@ public class PlayerAttack : MonoBehaviour
     public float attackRate = 2f;
     private float nextAttackTime = 0f;
 
+    [Header("Arah Hadap Saat Menyerang")]
+    public float aimFaceDuration = 0.4f; // berapa lama player tetap hadap ke arah tembakan
+    private float aimFaceTimer = 0f;
+    private SpriteRenderer playerSprite;
+
+    public bool IsAimLocked => aimFaceTimer > 0f;
+
     private Camera mainCamera;
 
     void Start()
     {
         paintManager = GetComponent<PlayerPaintManager>();
         mainCamera = Camera.main;
+        playerSprite = GetComponentInChildren<SpriteRenderer>();
     }
 
     void Update()
     {
+        if (aimFaceTimer > 0f) aimFaceTimer -= Time.deltaTime;
         if (paintManager.isAttackModeActive)
         {
             if (Time.time >= nextAttackTime)
@@ -51,6 +60,12 @@ public class PlayerAttack : MonoBehaviour
         );
 
         Vector2 direction = GetMouseDirection();
+        // Hadapkan player ke arah mouse
+        if (playerSprite != null && Mathf.Abs(direction.x) > 0.01f)
+        {
+            playerSprite.flipX = direction.x < 0;
+            aimFaceTimer = aimFaceDuration;
+        }
 
         PaintProjectile projectileScript = projectile.GetComponent<PaintProjectile>();
 

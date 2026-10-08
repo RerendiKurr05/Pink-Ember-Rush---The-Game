@@ -23,6 +23,9 @@ public class EnemyBase : MonoBehaviour
     private Vector2 knockbackVelocity;
     private float knockbackTimer;
 
+    [Header("Damage")]
+    public bool dealsContactDamage = true; // false = player gak kena damage cuma karena nyentuh
+
     protected virtual void Start()
     {
         currentHealth = maxHealth;
@@ -76,8 +79,10 @@ public class EnemyBase : MonoBehaviour
         isKnockedBack = true;
         knockbackVelocity = direction.normalized * force * knockbackResistance;
         knockbackTimer = duration;
+        OnKnockedBack();
     }
 
+    protected virtual void OnKnockedBack() { } 
     protected virtual void Move() { }
 
     public void TakeDamage(int damage)

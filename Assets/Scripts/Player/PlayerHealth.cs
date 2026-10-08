@@ -66,7 +66,13 @@ public class PlayerHealth : MonoBehaviour
     {
         if (collision.gameObject.CompareTag("Enemy"))
         {
-            TakeDamage(1);
+            EnemyBase enemy = collision.gameObject.GetComponent<EnemyBase>();
+
+            // Enemy tanpa komponen EnemyBase, atau yang dealsContactDamage-nya true, tetap damage saat sentuh
+            if (enemy == null || enemy.dealsContactDamage)
+            {
+                TakeDamage(1);
+            }
         }
     }
 
