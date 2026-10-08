@@ -62,6 +62,37 @@ Transform:
   m_Children: []
   m_Father: {fileID: 7412394055528756530}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &3194439650960092195
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 8672148642071365738}
+  m_Layer: 7
+  m_Name: AttackHitPoint
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &8672148642071365738
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3194439650960092195}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 1, y: 0.65, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 7412394055528756530}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &5237379932826250536
 GameObject:
   m_ObjectHideFlags: 0
@@ -107,7 +138,7 @@ GameObject:
   - component: {fileID: 6123591838977913668}
   - component: {fileID: 2407748580004234974}
   m_Layer: 7
-  m_Name: Enemy
+  m_Name: Enemy_Lunge
   m_TagString: Enemy
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -129,6 +160,7 @@ Transform:
   - {fileID: 816546354415444448}
   - {fileID: 8970725252081703560}
   - {fileID: 775011935693547117}
+  - {fileID: 8672148642071365738}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!212 &7316880095142122755
@@ -258,12 +290,12 @@ MonoBehaviour:
   groundCheckDistance: 0.1
   gravity: 20
   maxFallSpeed: 15
-  usesLungeAttack: 0
-  animator: {fileID: 0}
+  usesLungeAttack: 1
+  animator: {fileID: 2407748580004234974}
   playerLayer:
     serializedVersion: 2
-    m_Bits: 0
-  attackHitPoint: {fileID: 0}
+    m_Bits: 8
+  attackHitPoint: {fileID: 8672148642071365738}
   attackHitRadius: 0.5
   attackDamage: 1
   attackTriggerRange: 1.5
@@ -283,7 +315,7 @@ Animator:
   m_GameObject: {fileID: 7435063146694309032}
   m_Enabled: 1
   m_Avatar: {fileID: 0}
-  m_Controller: {fileID: 3597814773415815499, guid: 08c7932527cff3f4c91c30033ce8f2fc, type: 3}
+  m_Controller: {fileID: 9100000, guid: 46a703fb9fc632540932be350c1d758c, type: 2}
   m_CullingMode: 0
   m_UpdateMode: 0
   m_ApplyRootMotion: 0

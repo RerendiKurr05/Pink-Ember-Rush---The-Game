@@ -796,8 +796,27 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: b0bad0fab514fc9469be08d9b26bf100, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  groundEnemyPrefab: {fileID: 7435063146694309032, guid: 52c389c01946a344d9acfdf0198bc083, type: 3}
-  flyingEnemyPrefab: {fileID: 5191778488641643914, guid: 56d3893b13a34714db3763385a22898a, type: 3}
+  enemies:
+  - name: Ulat_Ground 1
+    prefab: {fileID: 7435063146694309032, guid: 52c389c01946a344d9acfdf0198bc083, type: 3}
+    spawnType: 0
+    startTime: 0
+    weight: 1
+  - name: Tupai_Ground 2
+    prefab: {fileID: 7435063146694309032, guid: 1beebe03b2af43245a05cc876f7a8988, type: 3}
+    spawnType: 0
+    startTime: 0
+    weight: 1
+  - name: Burung_Flying 1
+    prefab: {fileID: 5191778488641643914, guid: 56d3893b13a34714db3763385a22898a, type: 3}
+    spawnType: 1
+    startTime: 20
+    weight: 0.4
+  - name: kepiting_Ground3
+    prefab: {fileID: 7435063146694309032, guid: 58412b3fae8fab9409cd9062b7eb1255, type: 3}
+    spawnType: 0
+    startTime: 0
+    weight: 1
   groundSpawnPoints:
   - {fileID: 1062436455}
   - {fileID: 991504970}
@@ -3383,6 +3402,7 @@ MonoBehaviour:
   attackRange: 8
   attackDamage: 1
   attackRate: 2
+  aimFaceDuration: 0.4
 --- !u!114 &1506029407
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -3408,6 +3428,8 @@ MonoBehaviour:
     m_Bits: 1024
   maxWallJumps: 2
   maxAirJumps: 1
+  player: {fileID: 1506029412}
+  fallLimitY: -20
   grappleRange: 8
   grappleLayer:
     serializedVersion: 2
@@ -3869,8 +3891,8 @@ Transform:
   m_GameObject: {fileID: 1557569960}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: -250.0873, y: -319.0049, z: 0}
-  m_LocalScale: {x: 70.71214, y: 3.7645385, z: 1}
+  m_LocalPosition: {x: -250.1866, y: -319.0049, z: 0}
+  m_LocalScale: {x: 70.51415, y: 3.7645385, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 361579176}

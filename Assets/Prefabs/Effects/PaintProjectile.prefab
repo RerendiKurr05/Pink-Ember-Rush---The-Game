@@ -78,7 +78,7 @@ SpriteRenderer:
   m_SortingLayer: 0
   m_SortingOrder: 0
   m_Sprite: {fileID: -2413806693520163455, guid: a86470a33a6bf42c4b3595704624658b, type: 3}
-  m_Color: {r: 1, g: 0.020754695, b: 0.6755697, a: 1}
+  m_Color: {r: 0.97735846, g: 0.19731575, b: 0.55044305, a: 1}
   m_FlipX: 0
   m_FlipY: 0
   m_DrawMode: 0
@@ -167,6 +167,9 @@ MonoBehaviour:
   arcHeight: 0.3
   damage: 1
   splashEffectPrefab: {fileID: 2574928328797680676, guid: ab59e83e7445aee40b8f0823d2366fa1, type: 3}
+  knockbackForce: 6
+  knockbackDuration: 0.2
+  knockbackUpwardBias: 0.3
 --- !u!96 &2080448830131629807
 TrailRenderer:
   serializedVersion: 3

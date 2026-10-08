@@ -15,17 +15,81 @@ public class EnemyGround : EnemyBase
     public float gravity = 20f;
     public float maxFallSpeed = 15f;
 
+    [Header("Serangan Seruduk (centang kalau punya animasi attack)")]
+    public bool usesLungeAttack = false;
+    public Animator animator;               // Animator enemy ini
+    public LayerMask playerLayer;           // layer Player
+    public Transform attackHitPoint;        // child di depan kepala enemy (boleh kosong)
+    public float attackHitRadius = 0.5f;
+    public int attackDamage = 1;
+    public float attackTriggerRange = 1.5f; // jarak ke player yang memicu seruduk
+    public float windupTime = 0.3f;         // frame awal: ancang-ancang
+    public float lungeTime = 0.2f;          // frame tengah: badan maju
+    public float lungeSpeed = 8f;
+    public float recoverTime = 0.3f;        // frame akhir: balik ke posisi semula
+    public float attackCooldown = 1.5f;
+
+    private enum State { Chase, Windup, Lunge, Recover }
+    private State state = State.Chase;
+    private float stateTimer;
+    private float nextAttackTime;
+    private bool hitDealt;
+
     private int facingDir = 1;
     private float verticalVelocity = 0f;
     public bool isGrounded;
+
+    protected override void Start()
+    {
+        base.Start();
+
+        if (animator == null) animator = GetComponent<Animator>();
+
+        // Enemy seruduk: damage dari seruduknya, bukan dari sentuhan biasa
+        if (usesLungeAttack) dealsContactDamage = false;
+    }
 
     protected override void Move()
     {
         if (player == null) return;
 
-        Vector2 direction = (player.position - transform.position).normalized;
-        direction.y = 0;
+        switch (state)
+        {
+            case State.Chase:
+                HandleChase();
+                break;
 
+            case State.Windup:
+                stateTimer -= Time.deltaTime;
+                if (stateTimer <= 0f)
+                {
+                    state = State.Lunge;
+                    stateTimer = lungeTime;
+                    hitDealt = false;
+                }
+                break;
+
+            case State.Lunge:
+                HandleLunge();
+                break;
+
+            case State.Recover:
+                stateTimer -= Time.deltaTime;
+                if (stateTimer <= 0f)
+                {
+                    state = State.Chase;
+                    nextAttackTime = Time.time + attackCooldown;
+                }
+                break;
+        }
+
+        // Gravitasi selalu jalan di semua state
+        ApplyGravityWithSweepCheck();
+    }
+
+    void HandleChase()
+    {
+        Vector2 direction = (player.position - transform.position).normalized;
         int desiredDir = direction.x >= 0 ? 1 : -1;
 
         if (desiredDir != facingDir)
@@ -35,17 +99,73 @@ public class EnemyGround : EnemyBase
         }
 
         float horizontalMove = IsBlocked() ? 0f : facingDir * moveSpeed;
-
-        // Horizontal jalan seperti biasa
         transform.Translate(new Vector2(horizontalMove, 0f) * Time.deltaTime);
 
-        // Vertical/gravity ditangani terpisah, pakai sweep-check biar gak tunneling
-        ApplyGravityWithSweepCheck();
+        if (usesLungeAttack && Time.time >= nextAttackTime && isGrounded)
+        {
+            float dx = Mathf.Abs(player.position.x - transform.position.x);
+            float dy = Mathf.Abs(player.position.y - transform.position.y);
+
+            if (dx <= attackTriggerRange && dy <= 1.5f)
+            {
+                StartWindup();
+            }
+        }
+    }
+
+    void StartWindup()
+    {
+        state = State.Windup;
+        stateTimer = windupTime;
+        if (animator != null) animator.SetTrigger("Attack");
+    }
+
+    void HandleLunge()
+    {
+        // Maju ke depan, tapi berhenti kalau mentok tembok / ujung platform
+        if (!IsBlocked())
+        {
+            transform.Translate(new Vector2(facingDir * lungeSpeed, 0f) * Time.deltaTime);
+        }
+
+        TryHitPlayer();
+
+        stateTimer -= Time.deltaTime;
+        if (stateTimer <= 0f)
+        {
+            state = State.Recover;
+            stateTimer = recoverTime;
+        }
+    }
+
+    void TryHitPlayer()
+    {
+        if (hitDealt) return; // 1x seruduk = maksimal 1x damage
+
+        Vector2 center = attackHitPoint != null
+            ? (Vector2)attackHitPoint.position
+            : (Vector2)transform.position + Vector2.right * facingDir * 0.5f;
+
+        Collider2D hit = Physics2D.OverlapCircle(center, attackHitRadius, playerLayer);
+        if (hit == null) return;
+
+        PlayerHealth playerHealth = hit.GetComponentInParent<PlayerHealth>();
+        if (playerHealth != null)
+        {
+            playerHealth.TakeDamage(attackDamage);
+            hitDealt = true;
+        }
+    }
+
+    // Kena tembakan cat saat lagi nyeruduk -> serangan dibatalkan
+    protected override void OnKnockedBack()
+    {
+        state = State.Chase;
+        nextAttackTime = Time.time + attackCooldown;
     }
 
     void ApplyGravityWithSweepCheck()
     {
-        // Jarak raycast = seberapa jauh dia BAKAL turun frame ini, plus buffer kecil
         float projectedFallDistance = Mathf.Abs(verticalVelocity) * Time.deltaTime;
         float castDistance = Mathf.Max(groundCheckDistance, projectedFallDistance + 0.05f);
 
@@ -56,7 +176,6 @@ public class EnemyGround : EnemyBase
             isGrounded = true;
             verticalVelocity = 0f;
 
-            // Snap posisi PERSIS di atas permukaan, gak cuma direm pelan-pelan
             float feetOffset = transform.position.y - groundCheckPoint.position.y;
             transform.position = new Vector3(transform.position.x, hit.point.y + feetOffset, transform.position.z);
         }
@@ -101,6 +220,11 @@ public class EnemyGround : EnemyBase
         {
             Gizmos.color = Color.green;
             Gizmos.DrawLine(groundCheckPoint.position, groundCheckPoint.position + Vector3.down * groundCheckDistance);
+        }
+        if (attackHitPoint != null)
+        {
+            Gizmos.color = Color.magenta;
+            Gizmos.DrawWireSphere(attackHitPoint.position, attackHitRadius);
         }
     }
 }

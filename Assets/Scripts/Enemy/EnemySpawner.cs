@@ -3,14 +3,23 @@ using System.Collections.Generic;
 
 public class EnemySpawner : MonoBehaviour
 {
-    [Header("Referensi Musuh")]
-    public GameObject groundEnemyPrefab;
-    public GameObject flyingEnemyPrefab;
+    public enum SpawnType { Ground, Flying }
 
-    [Header("Titik Kemunculan Ground")]
+    [System.Serializable]
+    public class EnemyEntry
+    {
+        public string name;                 // label biar rapi di Inspector
+        public GameObject prefab;
+        public SpawnType spawnType = SpawnType.Ground;
+        public float startTime = 0f;        // mulai muncul setelah detik ke-berapa
+        public float weight = 1f;           // makin besar = makin sering muncul
+    }
+
+    [Header("Daftar Enemy")]
+    public List<EnemyEntry> enemies = new List<EnemyEntry>();
+
+    [Header("Titik Kemunculan")]
     public Transform[] groundSpawnPoints;
-
-    [Header("Titik Kemunculan Flying")]
     public Transform[] flyingSpawnPoints;
 
     [Header("Pengaturan Waktu & Kesulitan")]
@@ -18,7 +27,7 @@ public class EnemySpawner : MonoBehaviour
     public float minimumSpawnInterval = 0.8f;
 
     [Header("Batas Jumlah Enemy")]
-    public int maxAliveEnemies = 15; // <-- TAMBAHIN INI, batas enemy hidup bersamaan
+    public int maxAliveEnemies = 15;
 
     private float matchTimer = 0f;
     private float currentSpawnInterval;
@@ -36,7 +45,6 @@ public class EnemySpawner : MonoBehaviour
 
         if (Time.time >= nextSpawnTime)
         {
-            // Cek dulu jumlah enemy yang masih hidup sebelum spawn baru
             int currentEnemyCount = GameObject.FindGameObjectsWithTag("Enemy").Length;
 
             if (currentEnemyCount < maxAliveEnemies)
@@ -44,8 +52,6 @@ public class EnemySpawner : MonoBehaviour
                 SpawnEnemy();
                 IncreaseDifficulty();
             }
-            // Kalau udah penuh, skip spawn kali ini, tapi timer tetap direset di bawah
-            // biar dia terus nyoba lagi di interval berikutnya (bukan macet total)
 
             nextSpawnTime = Time.time + currentSpawnInterval;
         }
@@ -53,42 +59,38 @@ public class EnemySpawner : MonoBehaviour
 
     void SpawnEnemy()
     {
-        GameObject enemyToSpawn = DecideWhichEnemyToSpawn();
-        Transform[] selectedSpawnPoints;
+        EnemyEntry entry = PickEnemy();
+        if (entry == null) return;
 
-        if (enemyToSpawn == groundEnemyPrefab)
-        {
-            selectedSpawnPoints = groundSpawnPoints;
-        }
-        else
-        {
-            selectedSpawnPoints = flyingSpawnPoints;
-        }
+        Transform[] points = entry.spawnType == SpawnType.Ground ? groundSpawnPoints : flyingSpawnPoints;
+        if (points.Length == 0) return;
 
-        if (selectedSpawnPoints.Length == 0) return;
-
-        Transform randomSpawnPoint =
-            selectedSpawnPoints[Random.Range(0, selectedSpawnPoints.Length)];
-
-        Instantiate(enemyToSpawn, randomSpawnPoint.position, Quaternion.identity);
+        Transform point = points[Random.Range(0, points.Length)];
+        Instantiate(entry.prefab, point.position, Quaternion.identity);
     }
 
-    GameObject DecideWhichEnemyToSpawn()
+    // Pilih enemy acak berdasarkan bobot, hanya dari yang sudah "kebuka" (startTime tercapai)
+    EnemyEntry PickEnemy()
     {
-        if (matchTimer < 30f)
+        float totalWeight = 0f;
+        foreach (EnemyEntry e in enemies)
         {
-            return groundEnemyPrefab;
+            if (e.prefab != null && matchTimer >= e.startTime)
+                totalWeight += e.weight;
         }
-        else if (matchTimer < 60f)
+
+        if (totalWeight <= 0f) return null;
+
+        float roll = Random.value * totalWeight;
+        foreach (EnemyEntry e in enemies)
         {
-            float randomChance = Random.value;
-            return (randomChance <= 0.7f) ? groundEnemyPrefab : flyingEnemyPrefab;
+            if (e.prefab == null || matchTimer < e.startTime) continue;
+
+            roll -= e.weight;
+            if (roll <= 0f) return e;
         }
-        else
-        {
-            float randomChance = Random.value;
-            return (randomChance <= 0.5f) ? groundEnemyPrefab : flyingEnemyPrefab;
-        }
+
+        return null;
     }
 
     void IncreaseDifficulty()

@@ -47,6 +47,12 @@ namespace Controller
         public int maxAirJumps = 1;
         private int _airJumpsUsed;
 
+        private PlayerAttack _attack;
+
+        [Header("Fall Detection")]
+        public Transform player;
+        public float fallLimitY = -10f;
+
         private bool _colLeft;
         private bool _colRight;
         private bool _colDown;
@@ -64,9 +70,11 @@ namespace Controller
 
         private void Awake()
         {
+            
             _rb = GetComponent<Rigidbody2D>();
             _col = GetComponent<CapsuleCollider2D>();
             _sprite = GetComponentInChildren<SpriteRenderer>();
+            _attack = GetComponent<PlayerAttack>();
             _cachedQueryStartInColliders = Physics2D.queriesStartInColliders;
 
             _distanceJoint = GetComponent<DistanceJoint2D>();
@@ -79,6 +87,11 @@ namespace Controller
         private void Update()
         {
             _time += Time.deltaTime;
+
+            if (transform.position.y < fallLimitY)
+            {
+                FindObjectOfType<GameManager>().GameOver();
+            }
 
             GatherInput();
             HandleSpriteFlip();
@@ -93,9 +106,10 @@ namespace Controller
 
         private void HandleSpriteFlip()
         {
+            if (_attack != null && _attack.IsAimLocked) return;
+
             if (_frameInput.Move.x > 0) _sprite.flipX = false;
             else if (_frameInput.Move.x < 0) _sprite.flipX = true;
-            // kalau Move.x == 0 (gak nekan tombol), biarin tetap ke arah terakhir
         }
 
         private void GatherInput()

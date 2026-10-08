@@ -31,10 +31,13 @@ namespace Controller
         private bool _grounded;
         private ParticleSystem.MinMaxGradient _currentGradient;
 
+        private PlayerAttack _attack;
+
         private void Awake()
         {
             _source = GetComponent<AudioSource>();
             _player = GetComponentInParent<IPlayerController>();
+            _attack = GetComponentInParent<PlayerAttack>();
         }
 
         private void OnEnable()
@@ -70,12 +73,14 @@ namespace Controller
 
         private void HandleSpriteFlip()
         {
-            if (_player.FrameInput.x != 0) 
+            if (_attack != null && _attack.IsAimLocked) return;
+
+            if (_player.FrameInput.x != 0)
             {
                 _sprite.flipX = _player.FrameInput.x < 0;
             }
         }
-
+        
         private void HandleIdleSpeed()
         {
             var inputStrength = Mathf.Abs(_player.FrameInput.x);
